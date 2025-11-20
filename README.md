@@ -1,9 +1,11 @@
-# InfinitePurpose_PassionRecipe-<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>From Passion to Purpose: Finding Your Infinite Purpose</title>
+    <!-- html2pdf.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -208,34 +210,43 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         
-        input[type="text"], textarea {
+        /* Textarea styling - Critical for auto-expansion */
+        textarea, input[type="text"] {
             width: 100%;
             padding: 10px;
             margin: 5px 0;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 1em;
-            transition: all 0.3s;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.5;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
         
-        input[type="text"]:focus, textarea:focus {
+        textarea {
+            overflow: hidden;
+            resize: none;
+            min-height: 80px;
+        }
+        
+        textarea:focus, input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-            overflow-y: hidden;
-            line-height: 1.5;
-        }
-        
-        /* For PDF export - ensure all content is visible */
-        .pdf-ready textarea {
-            height: auto !important;
-            overflow-y: visible !important;
+        /* Proxy div for PDF rendering */
+        .ta-proxy {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font: inherit;
+            line-height: inherit;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+            color: #000;
+            margin: 5px 0;
         }
         
         .mtp-builder {
@@ -333,18 +344,27 @@
             border-radius: 15px;
         }
         
+        .save-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        /* Print styles */
         @media print {
             body {
-                background: white;
-                padding: 0;
+                background: white !important;
+                padding: 0 !important;
             }
             
             .container {
-                box-shadow: none;
-                max-width: 100%;
+                box-shadow: none !important;
+                max-width: 100% !important;
+                border-radius: 0 !important;
             }
             
-            button, .navigation {
+            .navigation, button, .page-indicator {
                 display: none !important;
             }
             
@@ -354,12 +374,7 @@
                 animation: none !important;
             }
             
-            .page-indicator {
-                display: none;
-            }
-            
-            textarea, input[type="text"] {
-                border: 1px solid #666 !important;
+            textarea {
                 height: auto !important;
                 overflow: visible !important;
                 page-break-inside: avoid;
@@ -369,16 +384,38 @@
                 animation: none !important;
             }
             
-            /* Ensure text areas expand to show all content */
-            .pdf-ready textarea {
-                height: auto !important;
-                min-height: fit-content !important;
+            header {
+                page-break-inside: avoid;
             }
+            
+            .save-section {
+                display: none !important;
+            }
+        }
+        
+        /* Hide elements during PDF generation */
+        .pdf-generating .navigation,
+        .pdf-generating .save-section,
+        .pdf-generating .page-indicator {
+            display: none !important;
+        }
+        
+        .pdf-generating body {
+            background: white !important;
+        }
+        
+        .pdf-generating .container {
+            box-shadow: none !important;
+        }
+        
+        .pdf-generating .page {
+            display: block !important;
+            margin-bottom: 40px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="worksheet-content">
         <header>
             <h1>🚀 From Passion to Purpose</h1>
             <p class="subtitle">Discovering Your Infinite Purpose Through Connected Interests and Real Problems</p>
@@ -389,7 +426,7 @@
             <div class="page active" id="page1">
                 <h2>The Neurobiological Architecture of Passion</h2>
                 
-                <p>Now that we've explored moonshots and Massive Transformative Purpose (MTP), let's dive deeper into connecting your passion to real-world problems. Your <strong>Infinite Purpose</strong> emerges when you use your passion to solve problems that matter to others.</p>
+                <p>Your <strong>Infinite Purpose</strong> emerges when you use your passions to solve problems that matter to you. In other words, when you find a way to connect your "positive" interests with your "negative" interests.</p>
                 
                 <h3>How Passion Works in Your Brain</h3>
                 
@@ -444,19 +481,6 @@
                     <strong>Example:</strong> If you're interested in baseball and insects, you might discover that insects could serve as a protein source to enhance athletic performance. Or if you love creativity and AI, you might explore how artificial intelligence can be creative. These unexpected connections are where innovation happens!
                 </div>
                 
-                <h3>Finding Your Problem: The Purpose Method</h3>
-                
-                <p><strong>Following your passion alone isn't enough.</strong> We need to use it to solve problems in the world. We need a purpose.</p>
-                
-                <div class="problem-method">
-                    <p>To find your infinite purpose, connect your passion to a real problem using this method:</p>
-                    <ul>
-                        <li><strong>Keep a journal:</strong> Write down 5 things each day that bother or frustrate you. This helps you track potential problems to tackle.</li>
-                        <li><strong>Validate with others:</strong> Ask people around you if they also experience these problems. This confirms the problem truly exists.</li>
-                        <li><strong>Assess the scale:</strong> Figure out how big the problem is and whether people are hungry for a solution.</li>
-                    </ul>
-                </div>
-                
                 <div class="navigation">
                     <button disabled>Previous</button>
                     <button onclick="navigateTo(2)">Next: Positive Fuel →</button>
@@ -474,25 +498,25 @@
                     <h3>Your Individual Interests</h3>
                     <p>List 10 interests that energize and excite you:</p>
                     
-                    <input type="text" placeholder="Interest 1" class="interest-input">
-                    <input type="text" placeholder="Interest 2" class="interest-input">
-                    <input type="text" placeholder="Interest 3" class="interest-input">
-                    <input type="text" placeholder="Interest 4" class="interest-input">
-                    <input type="text" placeholder="Interest 5" class="interest-input">
-                    <input type="text" placeholder="Interest 6" class="interest-input">
-                    <input type="text" placeholder="Interest 7" class="interest-input">
-                    <input type="text" placeholder="Interest 8" class="interest-input">
-                    <input type="text" placeholder="Interest 9" class="interest-input">
-                    <input type="text" placeholder="Interest 10" class="interest-input">
+                    <input type="text" placeholder="Interest 1" id="interest-1">
+                    <input type="text" placeholder="Interest 2" id="interest-2">
+                    <input type="text" placeholder="Interest 3" id="interest-3">
+                    <input type="text" placeholder="Interest 4" id="interest-4">
+                    <input type="text" placeholder="Interest 5" id="interest-5">
+                    <input type="text" placeholder="Interest 6" id="interest-6">
+                    <input type="text" placeholder="Interest 7" id="interest-7">
+                    <input type="text" placeholder="Interest 8" id="interest-8">
+                    <input type="text" placeholder="Interest 9" id="interest-9">
+                    <input type="text" placeholder="Interest 10" id="interest-10">
                     
                     <h3 style="margin-top: 30px;">Connecting Interests</h3>
                     <p>Can you see connections between your interests? If yes, describe them. If not yet, that's okay—they'll emerge with time and mastery!</p>
                     
-                    <textarea placeholder="Connection 1: How do two or more of your interests intersect?" class="connection-input"></textarea>
-                    <textarea placeholder="Connection 2" class="connection-input"></textarea>
-                    <textarea placeholder="Connection 3" class="connection-input"></textarea>
-                    <textarea placeholder="Connection 4" class="connection-input"></textarea>
-                    <textarea placeholder="Connection 5" class="connection-input"></textarea>
+                    <textarea placeholder="Connection 1: How do two or more of your interests intersect?" id="connection-1"></textarea>
+                    <textarea placeholder="Connection 2" id="connection-2"></textarea>
+                    <textarea placeholder="Connection 3" id="connection-3"></textarea>
+                    <textarea placeholder="Connection 4" id="connection-4"></textarea>
+                    <textarea placeholder="Connection 5" id="connection-5"></textarea>
                 </div>
                 
                 <div class="navigation">
@@ -509,18 +533,32 @@
                 <div class="fuel-page negative-fuel">
                     <div class="fuel-title">Problems that frustrate you and energize you to create change</div>
                     
+                    <h3>Finding Your Problem: The Purpose Method</h3>
+                    
+                    <p><strong>Following your passion alone isn't enough.</strong> We need to use it to solve problems in the world. We need a purpose.</p>
+                    
+                    <div class="problem-method">
+                        <p>To find your infinite purpose, connect your passion to a real problem using this method:</p>
+                        <ul>
+                            <li><strong>Keep a journal:</strong> Write down 5 things each day that bother or frustrate you. This helps you track potential problems to tackle.</li>
+                            <li><strong>Validate with others:</strong> Ask people around you if they also experience these problems. This confirms the problem truly exists.</li>
+                            <li><strong>Assess the scale:</strong> Figure out how big the problem is and whether people are hungry for a solution.</li>
+                        </ul>
+                    </div>
+                    
+                    <h3 style="margin-top: 30px;">Your Problems</h3>
                     <p>List problems from your journaling that genuinely agitate you—not generic issues, but situations that you personally find disheartening and want to solve:</p>
                     
-                    <input type="text" placeholder="Problem 1: A specific issue that bothers you" class="problem-input">
-                    <input type="text" placeholder="Problem 2" class="problem-input">
-                    <input type="text" placeholder="Problem 3" class="problem-input">
-                    <input type="text" placeholder="Problem 4" class="problem-input">
-                    <input type="text" placeholder="Problem 5" class="problem-input">
-                    <input type="text" placeholder="Problem 6" class="problem-input">
-                    <input type="text" placeholder="Problem 7" class="problem-input">
-                    <input type="text" placeholder="Problem 8" class="problem-input">
-                    <input type="text" placeholder="Problem 9" class="problem-input">
-                    <input type="text" placeholder="Problem 10" class="problem-input">
+                    <input type="text" placeholder="Problem 1: A specific issue that bothers you" id="problem-1">
+                    <input type="text" placeholder="Problem 2" id="problem-2">
+                    <input type="text" placeholder="Problem 3" id="problem-3">
+                    <input type="text" placeholder="Problem 4" id="problem-4">
+                    <input type="text" placeholder="Problem 5" id="problem-5">
+                    <input type="text" placeholder="Problem 6" id="problem-6">
+                    <input type="text" placeholder="Problem 7" id="problem-7">
+                    <input type="text" placeholder="Problem 8" id="problem-8">
+                    <input type="text" placeholder="Problem 9" id="problem-9">
+                    <input type="text" placeholder="Problem 10" id="problem-10">
                     
                     <div class="info-box" style="margin-top: 20px;">
                         <strong>Remember:</strong> These should be problems that get you energized to act, not just abstract issues. They should be situations in the world that you find personally disagreeable and that you'd genuinely like to see solved.
@@ -546,18 +584,18 @@
                     <div class="connection-grid">
                         <div class="connection-box">
                             <h4>Selected Passion(s):</h4>
-                            <textarea id="bridge-passion" placeholder="Which interest(s) or connecting interests from Page 2 could you use?" style="min-height: 120px;"></textarea>
+                            <textarea id="bridge-passion" placeholder="Which interest(s) or connecting interests from Page 2 could you use?"></textarea>
                         </div>
                         
                         <div class="connection-box">
                             <h4>Target Problem:</h4>
-                            <textarea id="bridge-problem" placeholder="Which problem from Page 3 do you want to solve?" style="min-height: 120px;"></textarea>
+                            <textarea id="bridge-problem" placeholder="Which problem from Page 3 do you want to solve?"></textarea>
                         </div>
                     </div>
                     
                     <div style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px;">
                         <h4>How they connect:</h4>
-                        <textarea placeholder="Explain how you could use your passion to solve this problem..." style="min-height: 150px;"></textarea>
+                        <textarea id="bridge-explanation" placeholder="Explain how you could use your passion to solve this problem..."></textarea>
                     </div>
                     
                     <div class="example">
@@ -586,13 +624,13 @@
                             <strong>My infinite purpose is to use</strong>
                         </p>
                         
-                        <textarea id="passion-field" placeholder="[Insert your passion, primary interest, or connecting interests here]" style="margin: 15px 0; min-height: 100px;"></textarea>
+                        <textarea id="passion-field" placeholder="[Insert your passion, primary interest, or connecting interests here]"></textarea>
                         
                         <p style="font-size: 1.2em; margin: 20px 0;">
                             <strong>to solve</strong>
                         </p>
                         
-                        <textarea id="problem-field" placeholder="[Insert the problem you want to solve here]" style="margin: 15px 0; min-height: 100px;"></textarea>
+                        <textarea id="problem-field" placeholder="[Insert the problem you want to solve here]"></textarea>
                         
                         <button onclick="generateMTP()">Generate My Infinite Purpose</button>
                     </div>
@@ -605,8 +643,10 @@
                 <div class="save-section">
                     <h3>Save Your Work</h3>
                     <p>Save your worksheet locally or download as PDF to submit</p>
-                    <button onclick="saveWorksheet()">💾 Save Worksheet Locally</button>
-                    <button onclick="downloadAsPDF()">📥 Download as PDF</button>
+                    <div class="save-buttons">
+                        <button onclick="saveToLocalStorage()">💾 Save Worksheet</button>
+                        <button onclick="generatePDF()">📥 Download as PDF</button>
+                    </div>
                 </div>
                 
                 <div class="navigation">
@@ -621,7 +661,7 @@
     <script>
         let currentPage = 1;
         
-        // Auto-expand textareas as user types
+        // Auto-expand textarea function
         function autoExpand(textarea) {
             textarea.style.height = 'auto';
             textarea.style.height = textarea.scrollHeight + 'px';
@@ -629,17 +669,13 @@
         
         // Initialize auto-expand for all textareas
         function initializeAutoExpand() {
-            document.querySelectorAll('textarea').forEach(textarea => {
+            const textareas = document.querySelectorAll('textarea');
+            textareas.forEach(textarea => {
                 // Set initial height
                 autoExpand(textarea);
                 
-                // Add event listeners for auto-expansion
+                // Add input listener for auto-expansion
                 textarea.addEventListener('input', function() {
-                    autoExpand(this);
-                });
-                
-                // Also expand on focus to show all content
-                textarea.addEventListener('focus', function() {
                     autoExpand(this);
                 });
             });
@@ -666,13 +702,15 @@
                 
                 if (bridgePassion && !document.getElementById('passion-field').value) {
                     document.getElementById('passion-field').value = bridgePassion;
+                    autoExpand(document.getElementById('passion-field'));
                 }
                 if (bridgeProblem && !document.getElementById('problem-field').value) {
                     document.getElementById('problem-field').value = bridgeProblem;
+                    autoExpand(document.getElementById('problem-field'));
                 }
             }
             
-            // Re-initialize auto-expand for the new page
+            // Re-initialize auto-expand for the current page
             setTimeout(initializeAutoExpand, 100);
         }
         
@@ -696,164 +734,218 @@
             }
         }
         
-        // Save worksheet data to localStorage
-        function saveWorksheet() {
+        // Save to localStorage
+        function saveToLocalStorage() {
+            const data = collectData();
+            localStorage.setItem('infinitePurposeWorksheet', JSON.stringify(data));
+            alert('Worksheet saved locally! Your responses will be here when you return.');
+        }
+        
+        // Collect all data from the form
+        function collectData() {
             const data = {
                 interests: [],
                 connections: [],
                 problems: [],
                 bridgePassion: document.getElementById('bridge-passion').value,
                 bridgeProblem: document.getElementById('bridge-problem').value,
+                bridgeExplanation: document.getElementById('bridge-explanation').value,
                 passion: document.getElementById('passion-field').value,
                 problem: document.getElementById('problem-field').value,
                 savedDate: new Date().toISOString()
             };
             
             // Collect interests
-            document.querySelectorAll('.interest-input').forEach(input => {
-                if (input.value) data.interests.push(input.value);
-            });
+            for (let i = 1; i <= 10; i++) {
+                const value = document.getElementById(`interest-${i}`).value;
+                if (value) data.interests.push(value);
+            }
             
             // Collect connections
-            document.querySelectorAll('.connection-input').forEach(input => {
-                if (input.value) data.connections.push(input.value);
-            });
+            for (let i = 1; i <= 5; i++) {
+                const value = document.getElementById(`connection-${i}`).value;
+                if (value) data.connections.push(value);
+            }
             
             // Collect problems
-            document.querySelectorAll('.problem-input').forEach(input => {
-                if (input.value) data.problems.push(input.value);
-            });
+            for (let i = 1; i <= 10; i++) {
+                const value = document.getElementById(`problem-${i}`).value;
+                if (value) data.problems.push(value);
+            }
             
-            localStorage.setItem('infinitePurposeWorksheet', JSON.stringify(data));
-            alert('Worksheet saved locally! Your responses will be here when you return.');
+            return data;
         }
         
-        // Download as PDF function
-        function downloadAsPDF() {
-            // First, expand all textareas to show full content
-            document.querySelectorAll('textarea').forEach(textarea => {
-                autoExpand(textarea);
-            });
-            
-            // Make all pages visible for printing
-            document.querySelectorAll('.page').forEach(page => {
-                page.style.display = 'block';
-                page.style.pageBreakAfter = 'always';
-            });
-            
-            // Add PDF-ready class to ensure all content is visible
-            document.body.classList.add('pdf-ready');
-            
-            // Give browser time to render changes, then trigger print
-            setTimeout(() => {
-                window.print();
-                
-                // After printing, restore normal view
-                setTimeout(() => {
-                    document.body.classList.remove('pdf-ready');
-                    document.querySelectorAll('.page').forEach(page => {
-                        page.style.display = '';
-                        page.style.pageBreakAfter = '';
-                    });
-                    navigateTo(currentPage);
-                }, 1000);
-            }, 100);
-        }
-        
-        // Load saved data on page load
-        window.addEventListener('load', function() {
+        // Load data from localStorage
+        function loadFromLocalStorage() {
             const saved = localStorage.getItem('infinitePurposeWorksheet');
             if (saved) {
                 const data = JSON.parse(saved);
                 
                 // Load interests
-                const interestInputs = document.querySelectorAll('.interest-input');
                 data.interests.forEach((interest, i) => {
-                    if (interestInputs[i]) interestInputs[i].value = interest;
+                    const input = document.getElementById(`interest-${i + 1}`);
+                    if (input) input.value = interest;
                 });
                 
                 // Load connections
-                const connectionInputs = document.querySelectorAll('.connection-input');
                 data.connections.forEach((connection, i) => {
-                    if (connectionInputs[i]) connectionInputs[i].value = connection;
+                    const textarea = document.getElementById(`connection-${i + 1}`);
+                    if (textarea) {
+                        textarea.value = connection;
+                        autoExpand(textarea);
+                    }
                 });
                 
                 // Load problems
-                const problemInputs = document.querySelectorAll('.problem-input');
                 data.problems.forEach((problem, i) => {
-                    if (problemInputs[i]) problemInputs[i].value = problem;
+                    const input = document.getElementById(`problem-${i + 1}`);
+                    if (input) input.value = problem;
                 });
                 
                 // Load bridge fields
-                if (data.bridgePassion) document.getElementById('bridge-passion').value = data.bridgePassion;
-                if (data.bridgeProblem) document.getElementById('bridge-problem').value = data.bridgeProblem;
+                if (data.bridgePassion) {
+                    document.getElementById('bridge-passion').value = data.bridgePassion;
+                    autoExpand(document.getElementById('bridge-passion'));
+                }
+                if (data.bridgeProblem) {
+                    document.getElementById('bridge-problem').value = data.bridgeProblem;
+                    autoExpand(document.getElementById('bridge-problem'));
+                }
+                if (data.bridgeExplanation) {
+                    document.getElementById('bridge-explanation').value = data.bridgeExplanation;
+                    autoExpand(document.getElementById('bridge-explanation'));
+                }
                 
                 // Load MTP fields
-                if (data.passion) document.getElementById('passion-field').value = data.passion;
-                if (data.problem) document.getElementById('problem-field').value = data.problem;
+                if (data.passion) {
+                    document.getElementById('passion-field').value = data.passion;
+                    autoExpand(document.getElementById('passion-field'));
+                }
+                if (data.problem) {
+                    document.getElementById('problem-field').value = data.problem;
+                    autoExpand(document.getElementById('problem-field'));
+                }
             }
-            
-            // Initialize auto-expand after loading
-            initializeAutoExpand();
-        });
+        }
         
-        // Export data as text (keeping this function even though button is removed, in case needed)
-        function exportData() {
-            let text = "MY INFINITE PURPOSE WORKSHEET\n";
-            text += "Generated: " + new Date().toLocaleString() + "\n\n";
-            
-            text += "=" + "=".repeat(50) + "\n";
-            text += "POSITIVE FUEL - INTERESTS:\n";
-            text += "=" + "=".repeat(50) + "\n";
-            document.querySelectorAll('.interest-input').forEach((input, i) => {
-                if (input.value) text += `${i + 1}. ${input.value}\n`;
-            });
-            
-            text += "\n" + "=".repeat(50) + "\n";
-            text += "CONNECTING INTERESTS:\n";
-            text += "=" + "=".repeat(50) + "\n";
-            document.querySelectorAll('.connection-input').forEach((input, i) => {
-                if (input.value) text += `${i + 1}. ${input.value}\n`;
-            });
-            
-            text += "\n" + "=".repeat(50) + "\n";
-            text += "NEGATIVE FUEL - PROBLEMS:\n";
-            text += "=" + "=".repeat(50) + "\n";
-            document.querySelectorAll('.problem-input').forEach((input, i) => {
-                if (input.value) text += `${i + 1}. ${input.value}\n`;
-            });
-            
-            text += "\n" + "=".repeat(50) + "\n";
-            text += "BRIDGING PASSION TO PROBLEM:\n";
-            text += "=" + "=".repeat(50) + "\n";
-            const bridgePassion = document.getElementById('bridge-passion').value;
-            const bridgeProblem = document.getElementById('bridge-problem').value;
-            if (bridgePassion) text += `Selected Passion: ${bridgePassion}\n`;
-            if (bridgeProblem) text += `Target Problem: ${bridgeProblem}\n`;
-            
-            const passion = document.getElementById('passion-field').value;
-            const problem = document.getElementById('problem-field').value;
-            
-            text += "\n" + "=".repeat(50) + "\n";
-            text += "MY INFINITE PURPOSE:\n";
-            text += "=" + "=".repeat(50) + "\n";
-            if (passion && problem) {
-                text += `My infinite purpose is to use ${passion} to solve ${problem}\n`;
-            } else {
-                text += "[Complete the worksheet to generate your infinite purpose]\n";
-            }
-            
-            // Create download
-            const blob = new Blob([text], { type: 'text/plain' });
+        // Export data as JSON
+        function exportJSON() {
+            const data = collectData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'my-infinite-purpose.txt';
+            a.download = 'infinite-purpose-worksheet.json';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
         }
+        
+        // Import JSON data
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        // Clear existing data first
+                        document.querySelectorAll('input[type="text"], textarea').forEach(field => {
+                            field.value = '';
+                        });
+                        
+                        // Load the imported data
+                        localStorage.setItem('infinitePurposeWorksheet', JSON.stringify(data));
+                        loadFromLocalStorage();
+                        alert('Data imported successfully!');
+                    } catch (error) {
+                        alert('Error importing file. Please make sure it\'s a valid JSON file.');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+        
+        // Generate PDF using html2pdf.js
+        function generatePDF() {
+            // Add class to body for PDF generation
+            document.body.classList.add('pdf-generating');
+            
+            // Replace textareas with proxy divs
+            const textareas = document.querySelectorAll('textarea');
+            const proxies = [];
+            
+            textareas.forEach(textarea => {
+                // Create proxy div
+                const proxy = document.createElement('div');
+                proxy.className = 'ta-proxy';
+                proxy.textContent = textarea.value;
+                
+                // Insert proxy after textarea
+                textarea.parentNode.insertBefore(proxy, textarea.nextSibling);
+                
+                // Hide original textarea
+                textarea.style.visibility = 'hidden';
+                textarea.style.position = 'absolute';
+                
+                proxies.push({ textarea, proxy });
+            });
+            
+            // Make all pages visible
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.display = 'block';
+            });
+            
+            // Configure html2pdf options
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: 'infinite-purpose-worksheet.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    scrollY: 0,
+                    backgroundColor: '#ffffff'
+                },
+                jsPDF: { 
+                    unit: 'pt', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
+                },
+                pagebreak: { 
+                    mode: ['css', 'legacy'],
+                    before: '.page'
+                }
+            };
+            
+            // Generate PDF
+            html2pdf().from(document.getElementById('worksheet-content')).set(opt).save().then(() => {
+                // Restore original state
+                proxies.forEach(({ textarea, proxy }) => {
+                    textarea.style.visibility = '';
+                    textarea.style.position = '';
+                    proxy.remove();
+                });
+                
+                // Hide pages except current
+                document.querySelectorAll('.page').forEach(page => {
+                    page.style.display = '';
+                });
+                document.getElementById('page' + currentPage).classList.add('active');
+                
+                // Remove PDF generation class
+                document.body.classList.remove('pdf-generating');
+            });
+        }
+        
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            initializeAutoExpand();
+            loadFromLocalStorage();
+        });
     </script>
 </body>
 </html>
